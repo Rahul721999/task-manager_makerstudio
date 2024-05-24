@@ -9,16 +9,16 @@ const DATA_FILE: &str = "data.json";
 // User schema..
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    id: Uuid,
-    name: String,
-    tasks: HashMap<String, Task>,
+    pub id: Uuid,
+    pub name: String,
+    pub tasks: HashMap<String, Task>,
 }
 impl User {
-    fn new(name: String) -> Self {
+    pub fn new(name: &str) -> Self {
         let id = Uuid::new_v4();
         User {
             id,
-            name,
+            name : name.to_string(),
             tasks: HashMap::new(),
         }
     }
@@ -26,11 +26,11 @@ impl User {
 // Task Schema..
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Task {
-    id: Uuid,
-    title: String,
-    description: String,
-    due_date: String,
-    status: Status,
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub due_date: String,
+    pub status: Status,
 }
 
 // Task-Status Schema..
@@ -44,7 +44,7 @@ pub enum Status {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct AppStateData {
-    users: HashMap<String, User>,
+    pub users: HashMap<String, User>,
 }
 
 pub fn load_data() -> AppStateData {

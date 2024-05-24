@@ -16,7 +16,7 @@ use std::sync::Mutex;
 
 // AppState
 pub struct AppState {
-    data: Mutex<AppStateData>,
+    pub data: Mutex<AppStateData>,
 }
 
 #[actix_web::main]
