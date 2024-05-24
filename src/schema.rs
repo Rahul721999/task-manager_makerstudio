@@ -46,7 +46,7 @@ impl Task{
 }
 
 // Task-Status Schema..
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Status {
     ToDo,
     InProgress,

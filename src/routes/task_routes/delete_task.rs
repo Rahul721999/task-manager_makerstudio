@@ -13,7 +13,7 @@ pub struct DeleteTask {
     id: Uuid,
 }
 
-/// API endpoint to create new task
+/// API endpoint to delete new task
 /// URL: "/users/{userid}/tasks/delete"
 pub async fn delete_task(
     state_data: web::Data<AppState>,
@@ -105,6 +105,9 @@ mod test {
 
         let resp_body = test::read_body(resp).await;
         let resp_task_id: Uuid = serde_json::from_slice(&resp_body).unwrap();
+
+        // comparing the task-id from response with the task-id provided
+        assert_eq!(resp_task_id, test_task_id);
 
         // Verify that the task was deleted from the user's tasks
         if let Ok(mut state_data) = app_state.data.lock() {
