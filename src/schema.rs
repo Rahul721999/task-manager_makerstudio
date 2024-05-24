@@ -2,21 +2,31 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
+use uuid::Uuid;
 
 const DATA_FILE: &str = "data.json";
 
 // User schema..
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    id: String,
+    id: Uuid,
     name: String,
     tasks: HashMap<String, Task>,
 }
-
+impl User {
+    fn new(name: String) -> Self {
+        let id = Uuid::new_v4();
+        User {
+            id,
+            name,
+            tasks: HashMap::new(),
+        }
+    }
+}
 // Task Schema..
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Task {
-    id: String,
+    id: Uuid,
     title: String,
     description: String,
     due_date: String,
