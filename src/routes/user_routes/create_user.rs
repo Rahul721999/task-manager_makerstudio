@@ -4,9 +4,9 @@ use crate::{
 };
 use actix_web::{http::StatusCode, web, HttpResponse, Responder};
 use log::{error, info};
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NewUser {
     name: String,
 }
@@ -29,4 +29,51 @@ pub async fn create_user(
     };
     error!("failed to get DB");
     HttpResponse::InternalServerError().body("DB error")
+}
+
+
+#[cfg(test)]
+mod test{
+
+    use uuid::Uuid;
+    use std::sync::Mutex;
+    use crate::schema::load_data;
+    use std::collections::HashMap;
+
+    use super::*;
+    use actix_web::{test, App};
+
+    #[actix_web::test]
+    async fn test_create_user(){
+        let app_state = web::Data::new(AppState{
+            data: Mutex::new(load_data()),
+        });
+
+        // creating Test app
+        let mut app = test::init_service(
+            App::new()
+                .app_data(app_state.clone())
+                .route("/users/create", web::post().to(create_user)),
+        ).await;
+
+        // creating req for api
+        let req = test::TestRequest::post()
+            .uri("/users/create")
+            .set_json(NewUser{
+                name : "Test-User".to_string(),
+            })
+            .to_request();
+
+        // comparing response with expected result
+        let resp: Uuid = test::call_and_read_body_json(&app, req).await;
+        assert!(!resp.is_nil());
+
+        // forcefully reomving "new-test-user" to avoid duplicates
+        if let Ok(mut state_data) = app_state.data.lock() {
+            if state_data.users.remove(&resp).is_some(){
+                save_data(&state_data);
+            }
+        };
+
+    }
 }
