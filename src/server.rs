@@ -26,9 +26,9 @@ pub async fn start_service(
                             .wrap(Logger::default())
                             .wrap(Logger::default())
                             .route("/create", web::post().to(create_task))
-                            .route("/{taskId}", web::get().to(list_task))
-                            .route("/{taskId}", web::put().to(update_task))
-                            .route("/{taskId}", web::delete().to(delete_task)),
+                            .route("/list", web::get().to(list_task))
+                            .route("/update", web::put().to(update_task))
+                            .route("/delete", web::delete().to(delete_task)),
                     ),
             )
     })
