@@ -11,7 +11,7 @@ const DATA_FILE: &str = "data.json";
 pub struct User {
     pub id: Uuid,
     pub name: String,
-    pub tasks: HashMap<String, Task>,
+    pub tasks: HashMap<Uuid, Task>,
 }
 impl User {
     pub fn new(name: &str) -> Self {
@@ -44,7 +44,7 @@ pub enum Status {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct AppStateData {
-    pub users: HashMap<String, User>,
+    pub users: HashMap<Uuid, User>,
 }
 
 pub fn load_data() -> AppStateData {
