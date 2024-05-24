@@ -70,7 +70,7 @@ mod test {
         if let Ok(mut state_data) = app_state.data.lock() {
             state_data.users.insert(user_id, test_user);
             save_data(&state_data);
-        }
+        };
 
         // Initialize the test app with the necessary route
         let mut app = test::init_service(
