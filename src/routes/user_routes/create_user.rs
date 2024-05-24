@@ -10,6 +10,9 @@ use serde::{Serialize, Deserialize};
 pub struct NewUser {
     name: String,
 }
+
+/// API endpoint to create new task
+/// URL: "/users/delete/"
 pub async fn create_user(
     state_data: web::Data<AppState>,
     req: web::Json<NewUser>,
