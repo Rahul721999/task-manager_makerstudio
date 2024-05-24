@@ -20,15 +20,16 @@ pub async fn start_service(
                 web::scope("/users")
                     .wrap(Logger::default())
                     .route("/create", web::post().to(create_user))
-                    .route("/delete", web::delete().to(delete_user)),
-            )
-            .service(
-                web::scope("/users/{userId}/tasks")
-                    .wrap(Logger::default())
-                    .route("/create", web::post().to(create_task))
-                    .route("/{taskId}", web::get().to(list_task))
-                    .route("/{taskId}", web::put().to(update_task))
-                    .route("/{taskId}", web::delete().to(delete_task)),
+                    .route("/delete", web::delete().to(delete_user))
+                    .service(
+                        web::scope("/{userId}/tasks")
+                            .wrap(Logger::default())
+                            .wrap(Logger::default())
+                            .route("/create", web::post().to(create_task))
+                            .route("/{taskId}", web::get().to(list_task))
+                            .route("/{taskId}", web::put().to(update_task))
+                            .route("/{taskId}", web::delete().to(delete_task)),
+                    ),
             )
     })
     .bind("127.0.0.1:8080")?
