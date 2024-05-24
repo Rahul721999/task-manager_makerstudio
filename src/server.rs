@@ -20,7 +20,7 @@ pub async fn start_service(
                 web::scope("/users")
                     .wrap(Logger::default())
                     .route("/create", web::post().to(create_user))
-                    .route("/{userId}/delete", web::delete().to(delete_user)),
+                    .route("/delete", web::delete().to(delete_user)),
             )
             .service(
                 web::scope("/users/{userId}/tasks")
