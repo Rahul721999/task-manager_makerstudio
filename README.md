@@ -59,6 +59,11 @@ This project is a simplified task management web application SaaS developed in R
     cargo run
     ```
 
+### Data Persistence
+
+- **Data.json File**: After running the server, a `Data.json` file will be generated in the root directory. This file serves as the application's database, where all user and task data is stored. Any modifications to the data (e.g., creating, updating, or deleting tasks) will be reflected in this file in real-time. This ensures that data is not lost even if the server is restarted.
+
+
 ### API Endpoints
 
 - **Create a User**:
