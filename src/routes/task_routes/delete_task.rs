@@ -1,9 +1,5 @@
-use crate::{
-    schema::{save_data, Status, Task, User},
-    AppState,
-};
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
-use chrono::NaiveDate;
+use crate::{schema::save_data, AppState};
+use actix_web::{web, HttpResponse, Responder};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -50,9 +46,10 @@ pub async fn delete_task(
 
 #[cfg(test)]
 mod test {
-    use crate::schema::{load_data, save_data, Status, Task, User};
+    use crate::schema::{load_data, save_data, Task, User};
+    use actix_web::http::StatusCode;
     use chrono::NaiveDate;
-    use std::{str::FromStr, sync::Mutex};
+    use std::sync::Mutex;
     use uuid::Uuid;
 
     use super::*;
@@ -83,7 +80,7 @@ mod test {
         };
 
         // Initialize the test app with the necessary route
-        let mut app = test::init_service(
+        let app = test::init_service(
             App::new()
                 .app_data(app_state.clone())
                 .route("/users/{user_id}/tasks/delete", web::post().to(delete_task)),
@@ -118,6 +115,5 @@ mod test {
             state_data.users.remove(&user_id);
             save_data(&state_data);
         };
-
     }
 }

@@ -1,12 +1,6 @@
-use std::borrow::BorrowMut;
-
-use crate::{
-    schema::{save_data, Status, Task, User},
-    AppState,
-};
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
-use chrono::NaiveDate;
-use log::{error, info, warn};
+use crate::{schema::Task, AppState};
+use actix_web::{web, HttpResponse, Responder};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

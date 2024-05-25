@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 // module imports
 mod routes;
 mod schema;
@@ -28,11 +26,12 @@ async fn main() -> anyhow::Result<()> {
         data: Mutex::new(load_data()),
     });
 
-    let server = start_service(app_state)
+    let _ = start_service(app_state)
         .await
-        .expect("failed to run server");
-    if let Err(err) = server.await {
-        error!("failed to run server: {}", err);
-    };
+        .map_err(|err| error!("{}", err))
+        .expect("failed to run server")
+        .await
+        .map_err(|err| error!("failed to run server: {}", err));
+
     Ok(())
 }

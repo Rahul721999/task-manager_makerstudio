@@ -1,11 +1,8 @@
-use std::borrow::BorrowMut;
-
 use crate::{
-    schema::{save_data, Status, Task, User},
+    schema::{save_data, Status},
     AppState,
 };
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
-use chrono::NaiveDate;
+use actix_web::{web, HttpResponse, Responder};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -32,7 +29,7 @@ pub async fn update_task(
                     status: task_status,
                 } = req.into_inner();
 
-                if let Some(mut task) = user.tasks.get_mut(&task_id) {
+                if let Some(task) = user.tasks.get_mut(&task_id) {
                     task.status = task_status.clone();
 
                     // update the new data to DB
@@ -64,6 +61,7 @@ mod test {
     use chrono::NaiveDate;
     use std::sync::Mutex;
     use uuid::Uuid;
+    use actix_web::http::StatusCode;
 
     use super::*;
     use actix_web::{test, App};
@@ -93,7 +91,7 @@ mod test {
         };
 
         // Initialize the test app with the necessary route
-        let mut app = test::init_service(
+        let app = test::init_service(
             App::new()
                 .app_data(app_state.clone())
                 .route("/users/{user_id}/tasks/update", web::post().to(update_task)),

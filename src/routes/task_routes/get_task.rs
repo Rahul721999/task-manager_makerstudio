@@ -1,9 +1,5 @@
-use crate::{
-    schema::{save_data, Status, Task, User},
-    AppState,
-};
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
-use chrono::NaiveDate;
+use crate::AppState;
+use actix_web::{web, HttpResponse, Responder};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -21,7 +17,7 @@ pub async fn get_task(
     req: web::Json<GetTask>,
 ) -> impl Responder {
     match state_data.data.lock() {
-        Ok(mut state_data) => {
+        Ok(state_data) => {
             let user_id = &user_id.into_inner();
             if let Some(user) = state_data.users.get(user_id) {
                 let task_id = &req.id;
@@ -48,7 +44,8 @@ mod test {
     use super::*;
     use crate::schema::{load_data, save_data, Task, User};
     use actix_web::{http::StatusCode, test, web, App};
-    use std::sync::{Arc, Mutex};
+    use chrono::NaiveDate;
+    use std::sync::Mutex;
     use uuid::Uuid;
 
     #[derive(Debug, Serialize, Deserialize)]

@@ -2,9 +2,9 @@ use crate::{
     schema::{save_data, User},
     AppState,
 };
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct NewUser {
@@ -20,7 +20,7 @@ pub async fn create_user(
     if let Ok(mut state_data) = state_data.data.lock() {
         let new_user = User::new(&req.name);
         let user_id = new_user.id;
-        
+
         // add new user to the DB
         state_data.users.insert(user_id, new_user);
 
@@ -34,36 +34,34 @@ pub async fn create_user(
     HttpResponse::InternalServerError().body("DB error")
 }
 
-
 #[cfg(test)]
-mod test{
-
-    use uuid::Uuid;
-    use std::sync::Mutex;
-    use crate::schema::load_data;
-    use std::collections::HashMap;
+mod test {
 
     use super::*;
+    use crate::schema::load_data;
     use actix_web::{test, App};
+    use std::sync::Mutex;
+    use uuid::Uuid;
 
     #[actix_web::test]
-    async fn test_create_user(){
-        let app_state = web::Data::new(AppState{
+    async fn test_create_user() {
+        let app_state = web::Data::new(AppState {
             data: Mutex::new(load_data()),
         });
 
         // creating Test app
-        let mut app = test::init_service(
+        let app = test::init_service(
             App::new()
                 .app_data(app_state.clone())
                 .route("/users/create", web::post().to(create_user)),
-        ).await;
+        )
+        .await;
 
         // creating req for api
         let req = test::TestRequest::post()
             .uri("/users/create")
-            .set_json(NewUser{
-                name : "Test-User".to_string(),
+            .set_json(NewUser {
+                name: "Test-User".to_string(),
             })
             .to_request();
 
@@ -73,10 +71,9 @@ mod test{
 
         // forcefully reomving "new-test-user" to avoid duplicates
         if let Ok(mut state_data) = app_state.data.lock() {
-            if state_data.users.remove(&resp).is_some(){
+            if state_data.users.remove(&resp).is_some() {
                 save_data(&state_data);
             }
         };
-
     }
 }

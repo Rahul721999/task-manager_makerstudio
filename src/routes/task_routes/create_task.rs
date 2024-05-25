@@ -1,8 +1,8 @@
 use crate::{
-    schema::{save_data, Status, Task, User},
+    schema::{save_data, Status, Task},
     AppState,
 };
-use actix_web::{http::StatusCode, web, HttpResponse, Responder};
+use actix_web::{web, HttpResponse, Responder};
 use chrono::NaiveDate;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
@@ -49,10 +49,11 @@ pub async fn create_task(
 
 #[cfg(test)]
 mod test {
-    use crate::schema::{load_data, save_data, Status, Task, User};
+    use crate::schema::{load_data, save_data, Status,User};
     use chrono::NaiveDate;
-    use std::{str::FromStr, sync::Mutex};
+    use std::sync::Mutex;
     use uuid::Uuid;
+    use actix_web::http::StatusCode;
 
     use super::*;
     use actix_web::{test, App};
@@ -73,7 +74,7 @@ mod test {
         };
 
         // Initialize the test app with the necessary route
-        let mut app = test::init_service(
+        let app = test::init_service(
             App::new()
                 .app_data(app_state.clone())
                 .route("/users/{user_id}/tasks/create", web::post().to(create_task)),
