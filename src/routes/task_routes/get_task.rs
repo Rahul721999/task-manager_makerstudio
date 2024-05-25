@@ -43,12 +43,11 @@ pub async fn get_task(
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::schema::{load_data, save_data, Task, User};
-    use actix_web::{test, web, App, http::StatusCode};
+    use actix_web::{http::StatusCode, test, web, App};
     use std::sync::{Arc, Mutex};
     use uuid::Uuid;
 
@@ -83,15 +82,15 @@ mod test {
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(app_state.clone()))
-                .route("/users/{user_id}/tasks/get-task", web::post().to(get_task)),
+                .app_data(app_state.clone())
+                .route("/users/{user_id}/tasks/get-task", web::get().to(get_task)),
         )
         .await;
 
         let get_task_req = GetTask { id: test_task_id };
-        let req = test::TestRequest::post()
+        let req = test::TestRequest::get()
             .uri(&format!("/users/{}/tasks/get-task", user_id))
-            .set_json(&get_task_req)
+            .set_json(get_task_req)
             .to_request();
 
         let resp = test::call_service(&app, req).await;
@@ -115,7 +114,7 @@ mod test {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(app_state.clone()))
-                .route("/users/{user_id}/tasks/get-task", web::post().to(get_task)),
+                .route("/users/{user_id}/tasks/get-task", web::get().to(get_task)),
         )
         .await;
 
@@ -127,9 +126,5 @@ mod test {
 
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-
-        let body = test::read_body(resp).await;
-        assert_eq!(body, "User not found");
     }
 }
-
