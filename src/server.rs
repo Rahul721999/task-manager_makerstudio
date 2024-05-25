@@ -1,5 +1,5 @@
 use crate::routes::{
-    task_routes::{create_task, delete_task, list_task, update_task},
+    task_routes::{create_task, delete_task, get_task, list_task, update_task},
     user_routes::{create_user, delete_user},
 };
 use crate::AppState;
@@ -27,6 +27,7 @@ pub async fn start_service(
                             .wrap(Logger::default())
                             .route("/create", web::post().to(create_task))
                             .route("/list", web::get().to(list_task))
+                            .route("/get-task", web::get().to(get_task))
                             .route("/update", web::put().to(update_task))
                             .route("/delete", web::delete().to(delete_task)),
                     ),
