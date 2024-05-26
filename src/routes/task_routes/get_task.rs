@@ -1,6 +1,5 @@
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
-use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -16,26 +15,23 @@ pub async fn get_task(
     user_id: web::Path<Uuid>,
     req: web::Json<GetTask>,
 ) -> impl Responder {
-    match state_data.data.lock() {
-        Ok(state_data) => {
-            let user_id = &user_id.into_inner();
-            if let Some(user) = state_data.users.get(user_id) {
-                let task_id = &req.id;
-                if let Some(task) = user.tasks.get(task_id) {
-                    info!("TaskId: {} found for userId: {}", task_id, user_id);
-                    HttpResponse::Ok().json(task)
-                } else {
-                    warn!("TaskId: {} not exist", task_id);
-                    HttpResponse::NotFound().body(format!("TaskId: {} doesn't exist", task_id))
-                }
-            } else {
-                HttpResponse::NotFound().body("User not found")
-            }
-        }
-        Err(_) => {
-            error!("Failed to acquire lock on the state data");
-            HttpResponse::InternalServerError().body("Internal Server Error")
-        }
+    // Attempt to acquire the lock
+    let state_data = match state_data.data.lock() {
+        Ok(data) => data,
+        Err(_) => return HttpResponse::InternalServerError().body("Internal Server Error"),
+    };
+
+    // Extract user_id and task_id
+    let user_id = user_id.into_inner();
+    let task_id = &req.id;
+
+    // Attempt to find the user and task
+    match state_data.users.get(&user_id).and_then(|user| user.tasks.get(task_id)) {
+        Some(task) => HttpResponse::Ok().json(task),
+        None => HttpResponse::NotFound().body(format!(
+            "TaskId: {} or UserId: {} not found",
+            task_id, user_id
+        )),
     }
 }
 

@@ -16,30 +16,30 @@ pub async fn delete_task(
     user_id: web::Path<Uuid>,
     req: web::Json<DeleteTask>,
 ) -> impl Responder {
-    match state_data.data.lock() {
-        Ok(mut state_data) => {
-            if let Some(user) = state_data.users.get_mut(&user_id.into_inner()) {
-                // parse task_id
-                let task_id = &req.id;
-                if !user.tasks.contains_key(task_id) {
-                    warn!("Task-id: {} doesn't exists", task_id);
-                    HttpResponse::NotFound().body("Task Doesn't exists")
-                } else {
-                    user.tasks.remove(task_id);
-
-                    // update the new data to DB
-                    save_data(&state_data);
-
-                    info!("Task deleted successfully with ID: {}", task_id);
-                    HttpResponse::Ok().json(task_id)
-                }
-            } else {
-                HttpResponse::NotFound().body("User not found")
-            }
-        }
+    let mut state_data = match state_data.data.lock() {
+        Ok(data) => data,
         Err(_) => {
             error!("Failed to acquire lock on the state data");
-            HttpResponse::InternalServerError().body("Internal Server Error")
+            return HttpResponse::InternalServerError().body("Internal Server Error");
+        }
+    };
+
+    let user_id = user_id.into_inner();
+    let task_id = &req.id;
+
+    match state_data.users.get_mut(&user_id) {
+        Some(user) => {
+            if user.tasks.remove(task_id).is_some() {
+                save_data(&state_data);
+                info!("Task deleted successfully with ID: {}", task_id);
+                HttpResponse::Ok().json(task_id)
+            } else {
+                warn!("Task-id: {} doesn't exist", task_id);
+                HttpResponse::NotFound().body("Task doesn't exist")
+            }
+        }
+        None => {
+            HttpResponse::NotFound().body("User not found")
         }
     }
 }

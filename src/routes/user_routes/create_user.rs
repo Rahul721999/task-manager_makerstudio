@@ -17,21 +17,26 @@ pub async fn create_user(
     state_data: web::Data<AppState>,
     req: web::Json<NewUser>,
 ) -> impl Responder {
-    if let Ok(mut state_data) = state_data.data.lock() {
-        let new_user = User::new(&req.name);
-        let user_id = new_user.id;
-
-        // add new user to the DB
-        state_data.users.insert(user_id, new_user);
-
-        // update the new data to DB
-        save_data(&state_data);
-
-        info!("User created successfully with ID: {}", user_id);
-        return HttpResponse::Ok().json(user_id);
+    // Try acquiring the lock on the mutex
+    let mut state_data = match state_data.data.lock() {
+        Ok(state_data) => state_data,
+        Err(_) => {
+            error!("Failed to acquire lock on the state data");
+            return HttpResponse::InternalServerError().body("DB error");
+        }
     };
-    error!("failed to get DB");
-    HttpResponse::InternalServerError().body("DB error")
+
+    let new_user = User::new(&req.name);
+    let user_id = new_user.id;
+
+    // Add new user to the DB
+    state_data.users.insert(user_id, new_user);
+
+    // Update the new data to DB
+    save_data(&state_data);
+
+    info!("User created successfully with ID: {}", user_id);
+    HttpResponse::Ok().json(user_id)
 }
 
 #[cfg(test)]

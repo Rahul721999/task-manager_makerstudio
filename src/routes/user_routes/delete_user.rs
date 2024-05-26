@@ -1,6 +1,6 @@
 use crate::{schema::save_data, AppState};
 use actix_web::{web, HttpResponse, Responder};
-use log::info;
+use log::{info, error};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -15,17 +15,24 @@ pub async fn delete_user(
     req: web::Json<DeleteUser>,
     state_data: web::Data<AppState>,
 ) -> impl Responder {
-    if let Ok(mut db) = state_data.data.lock() {
-        let user_id = req.id;
-        info!("Removing user: {} from db", user_id);
-        if db.users.remove(&user_id).is_some() {
-            save_data(&db);
-            HttpResponse::Ok().body(format!("UserID: {} deleted", user_id))
-        } else {
-            HttpResponse::NotFound().body(format!("UserID:{} not found", user_id))
+    // Try acquiring the lock on the mutex
+    let mut db = match state_data.data.lock() {
+        Ok(db) => db,
+        Err(_) => {
+            error!("Failed to acquire lock on the state data");
+            return HttpResponse::InternalServerError().body("Failed to process your request");
         }
+    };
+
+    let user_id = req.id;
+    info!("Removing user: {} from db", user_id);
+
+    // Attempt to remove the user from the database
+    if db.users.remove(&user_id).is_some() {
+        save_data(&db);
+        HttpResponse::Ok().body(format!("UserID: {} deleted", user_id))
     } else {
-        HttpResponse::InternalServerError().body("failed to process your request")
+        HttpResponse::NotFound().body(format!("UserID: {} not found", user_id))
     }
 }
 

@@ -20,48 +20,49 @@ pub async fn update_task(
     user_id: web::Path<Uuid>,
     req: web::Json<UpdateTask>,
 ) -> impl Responder {
-    match state_data.data.lock() {
-        Ok(mut state_data) => {
-            if let Some(user) = state_data.users.get_mut(&user_id.into_inner()) {
-                // parse task_id
-                let UpdateTask {
-                    id: task_id,
-                    status: task_status,
-                } = req.into_inner();
 
-                if let Some(task) = user.tasks.get_mut(&task_id) {
-                    task.status = task_status.clone();
-
-                    // update the new data to DB
-                    save_data(&state_data);
-
-                    info!(
-                        "Staus of Task-Id: {}, updated to: {:?}",
-                        task_id, task_status
-                    );
-                    HttpResponse::Ok().json(task_id)
-                } else {
-                    warn!("Task-id: {} doesn't exists", task_id);
-                    HttpResponse::NotFound().body("Task Doesn't exists")
-                }
-            } else {
-                HttpResponse::NotFound().body("User not found")
-            }
-        }
+    // try aquiring the lock on mutex
+    let mut state_data = match state_data.data.lock() {
+        Ok(state_data) => state_data,
         Err(_) => {
             error!("Failed to acquire lock on the state data");
-            HttpResponse::InternalServerError().body("Internal Server Error")
+            return HttpResponse::InternalServerError().body("Internal Server Error");
         }
+    };
+
+    // try finding the user in db
+    let user = match state_data.users.get_mut(&user_id.into_inner()) {
+        Some(user) => {user}
+        None => return HttpResponse::NotFound().body("User not found"),
+    };
+
+    // parse task_id
+    let UpdateTask {id: task_id,status: task_status} = req.into_inner();
+
+    if let Some(task) = user.tasks.get_mut(&task_id) {
+        task.status = task_status.clone();
+
+        // update the new data to DB
+        save_data(&state_data);
+
+        info!(
+            "Staus of Task-Id: {}, updated to: {:?}",
+            task_id, task_status
+        );
+        HttpResponse::Ok().json(task_id)
+    } else {
+        warn!("Task-id: {} doesn't exists", task_id);
+        HttpResponse::NotFound().body("Task Doesn't exists")
     }
 }
 
 #[cfg(test)]
 mod test {
     use crate::schema::{load_data, save_data, Status, Task, User};
+    use actix_web::http::StatusCode;
     use chrono::NaiveDate;
     use std::sync::Mutex;
     use uuid::Uuid;
-    use actix_web::http::StatusCode;
 
     use super::*;
     use actix_web::{test, App};

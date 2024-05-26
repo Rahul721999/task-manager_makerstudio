@@ -23,26 +23,29 @@ pub async fn create_task(
     user_id: web::Path<Uuid>,
     req: web::Json<NewTask>,
 ) -> impl Responder {
-    match state_data.data.lock() {
-        Ok(mut state_data) => {
-            if let Some(user) = state_data.users.get_mut(&user_id.into_inner()) {
-                // creating new task
-                let new_task = Task::new(&req.title, &req.description, req.due_date);
-                let task_id = new_task.id;
-                user.tasks.insert(task_id, new_task);
-
-                // update the new data to DB
-                save_data(&state_data);
-
-                info!("Task created successfully with ID: {}", task_id);
-                HttpResponse::Ok().json(task_id)
-            } else {
-                HttpResponse::NotFound().body("User not found")
-            }
-        }
+    let mut state_data = match state_data.data.lock() {
+        Ok(data) => data,
         Err(_) => {
             error!("Failed to acquire lock on the state data");
-            HttpResponse::InternalServerError().body("Internal Server Error")
+            return HttpResponse::InternalServerError().body("Internal Server Error");
+        }
+    };
+
+    let user_id = user_id.into_inner();
+
+    match state_data.users.get_mut(&user_id) {
+        Some(user) => {
+            let new_task = Task::new(&req.title, &req.description, req.due_date);
+            let task_id = new_task.id;
+            user.tasks.insert(task_id, new_task);
+
+            save_data(&state_data);
+
+            info!("Task created successfully with ID: {}", task_id);
+            HttpResponse::Ok().json(task_id)
+        }
+        None => {
+            HttpResponse::NotFound().body("User not found")
         }
     }
 }
