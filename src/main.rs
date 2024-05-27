@@ -2,6 +2,7 @@
 mod routes;
 mod schema;
 mod server;
+mod utility;
 
 use crate::schema::{load_data, AppStateData};
 use log::error;
