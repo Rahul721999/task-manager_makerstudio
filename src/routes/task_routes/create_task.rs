@@ -52,11 +52,9 @@ pub async fn create_task(
 
 #[cfg(test)]
 mod test {
-    use crate::schema::{load_data, save_data, Status,User};
-    use chrono::NaiveDate;
-    use std::sync::Mutex;
-    use uuid::Uuid;
+    use crate::utility::test_utils::{create_test_user_and_task, init_app_state};
     use actix_web::http::StatusCode;
+    use uuid::Uuid;
 
     use super::*;
     use actix_web::{test, App};
@@ -64,17 +62,11 @@ mod test {
     #[actix_web::test]
     async fn test_create_task() {
         // Initialize the app state with an in-memory database
-        let app_state = web::Data::new(AppState {
-            data: Mutex::new(load_data()),
-        });
+        let app_state = init_app_state();
 
-        // Add a test user
-        let test_user = User::new("test-user");
-        let user_id = test_user.id;
-        if let Ok(mut state_data) = app_state.data.lock() {
-            state_data.users.insert(user_id, test_user);
-            save_data(&state_data);
-        };
+        // Add a test user with test-task
+        let (user_id, _test_task_id) = create_test_user_and_task(&app_state);
+
 
         // Initialize the test app with the necessary route
         let app = test::init_service(
