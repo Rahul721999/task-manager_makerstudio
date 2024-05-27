@@ -20,7 +20,6 @@ pub async fn update_task(
     user_id: web::Path<Uuid>,
     req: web::Json<UpdateTask>,
 ) -> impl Responder {
-
     // try aquiring the lock on mutex
     let mut state_data = match state_data.data.lock() {
         Ok(state_data) => state_data,
@@ -32,12 +31,15 @@ pub async fn update_task(
 
     // try finding the user in db
     let user = match state_data.users.get_mut(&user_id.into_inner()) {
-        Some(user) => {user}
+        Some(user) => user,
         None => return HttpResponse::NotFound().body("User not found"),
     };
 
     // parse task_id
-    let UpdateTask {id: task_id,status: task_status} = req.into_inner();
+    let UpdateTask {
+        id: task_id,
+        status: task_status,
+    } = req.into_inner();
 
     if let Some(task) = user.tasks.get_mut(&task_id) {
         task.status = task_status.clone();
@@ -58,10 +60,8 @@ pub async fn update_task(
 
 #[cfg(test)]
 mod test {
-    use crate::schema::{load_data, save_data, Status, Task, User};
+    use crate::utility::test_utils::{create_test_user_and_task, init_app_state};
     use actix_web::http::StatusCode;
-    use chrono::NaiveDate;
-    use std::sync::Mutex;
     use uuid::Uuid;
 
     use super::*;
@@ -70,26 +70,10 @@ mod test {
     #[actix_web::test]
     async fn test_update_task() {
         // Initialize the app state with an in-memory database
-        let app_state = web::Data::new(AppState {
-            data: Mutex::new(load_data()),
-        });
+        let app_state = init_app_state();
 
-        // Add a test user with a test task
-        let mut test_user = User::new("test-user");
-        let user_id = test_user.id;
-        let test_task = Task::new(
-            "sample-title",
-            "sample-info",
-            NaiveDate::from_ymd_opt(2000, 1, 1).expect("failed to parse NaiveDate"),
-        );
-        let test_task_id = test_task.id;
-
-        // Add the test task to the user
-        test_user.tasks.insert(test_task.id, test_task);
-        if let Ok(mut state_data) = app_state.data.lock() {
-            state_data.users.insert(user_id, test_user);
-            save_data(&state_data);
-        };
+        // Add a test user with test-task
+        let (user_id, test_task_id) = create_test_user_and_task(&app_state);
 
         // Initialize the test app with the necessary route
         let app = test::init_service(
