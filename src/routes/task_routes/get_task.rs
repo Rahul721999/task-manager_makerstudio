@@ -26,7 +26,11 @@ pub async fn get_task(
     let task_id = &req.id;
 
     // Attempt to find the user and task
-    match state_data.users.get(&user_id).and_then(|user| user.tasks.get(task_id)) {
+    match state_data
+        .users
+        .get(&user_id)
+        .and_then(|user| user.tasks.get(task_id))
+    {
         Some(task) => HttpResponse::Ok().json(task),
         None => HttpResponse::NotFound().body(format!(
             "TaskId: {} or UserId: {} not found",
@@ -38,10 +42,9 @@ pub async fn get_task(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::schema::{load_data, save_data, Task, User};
+    use crate::schema::Task;
+    use crate::utility::*;
     use actix_web::{http::StatusCode, test, web, App};
-    use chrono::NaiveDate;
-    use std::sync::Mutex;
     use uuid::Uuid;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -52,26 +55,10 @@ mod test {
     #[actix_web::test]
     async fn test_get_task() {
         // Initialize the app state with an in-memory database
-        let app_state = web::Data::new(AppState {
-            data: Mutex::new(load_data()),
-        });
+        let app_state = init_app_state();
 
         // Add a test user with test-task
-        let mut test_user = User::new("test-user");
-        let user_id = test_user.id;
-        let test_task = Task::new(
-            "sample-title",
-            "sample-info",
-            NaiveDate::from_ymd_opt(2000, 1, 1).expect("failed to parse NaiveDate"),
-        );
-        let test_task_id = test_task.id;
-
-        // test task to the user
-        test_user.tasks.insert(test_task.id, test_task.clone());
-        if let Ok(mut state_data) = app_state.data.lock() {
-            state_data.users.insert(user_id, test_user);
-            save_data(&state_data);
-        };
+        let (user_id, test_task_id) = create_test_user_and_task(&app_state);
 
         let app = test::init_service(
             App::new()
@@ -91,7 +78,7 @@ mod test {
 
         let response_task: Task = test::read_body_json(resp).await;
         assert_eq!(response_task.id, test_task_id);
-        assert_eq!(response_task.title, test_task.title);
+        assert_eq!(response_task.title, "sample-title");
     }
 
     #[actix_web::test]
@@ -100,9 +87,7 @@ mod test {
         let task_id = Uuid::new_v4();
 
         // Initialize the app state with an in-memory database
-        let app_state = web::Data::new(AppState {
-            data: Mutex::new(load_data()),
-        });
+        let app_state = init_app_state();
 
         let app = test::init_service(
             App::new()
