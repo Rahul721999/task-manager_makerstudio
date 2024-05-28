@@ -1,3 +1,4 @@
+// src/routes/user_routes/create_user.rs
 use crate::{
     schema::{save_data, User},
     AppState,
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct NewUser {
-    name: String,
+    pub name: String,
 }
 
 /// API endpoint to create new task
@@ -43,7 +44,7 @@ pub async fn create_user(
 mod test {
 
     use super::*;
-    use crate::schema::load_data;
+    use crate::load_data;
     use actix_web::{test, App};
     use std::sync::Mutex;
     use uuid::Uuid;

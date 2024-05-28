@@ -1,6 +1,23 @@
+// src/lib.rs
+pub mod routes;
+pub mod schema;
+pub mod server;
+
+pub use routes::task_routes::*;
+pub use routes::user_routes::*;
+pub use schema::*;
+pub use server::*;
+
+
+// AppState
+use std::sync::Mutex;
+pub struct AppState {
+    pub data: Mutex<AppStateData>,
+}
+
 #[cfg(test)]
 pub mod test_utils {
-    use crate::schema::{load_data, save_data, Task, User};
+    use super::{load_data, save_data, User, Task};
     use crate::AppState;
     use actix_web::web;
     use chrono::NaiveDate;

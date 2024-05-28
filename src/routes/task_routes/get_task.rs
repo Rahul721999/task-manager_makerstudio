@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetTask {
-    id: Uuid,
+    pub id: Uuid,
 }
 
 /// API endpoint to delete new task
@@ -43,7 +43,7 @@ pub async fn get_task(
 mod test {
     use super::*;
     use crate::schema::Task;
-    use crate::utility::test_utils::{create_test_user_and_task, init_app_state};
+    use crate::test_utils::{create_test_user_and_task, init_app_state};
     use actix_web::{http::StatusCode, test, web, App};
     use uuid::Uuid;
 

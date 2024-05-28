@@ -1,22 +1,11 @@
 // module imports
-mod routes;
-mod schema;
-mod server;
-mod utility;
-
-use crate::schema::{load_data, AppStateData};
-use log::error;
-use server::start_service;
+use task_manager::{load_data, start_service, AppState};
 
 // extern crate imports
 use actix_web::web;
 use env_logger::Env;
+use log::error;
 use std::sync::Mutex;
-
-// AppState
-pub struct AppState {
-    pub data: Mutex<AppStateData>,
-}
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {

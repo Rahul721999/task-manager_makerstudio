@@ -3,9 +3,14 @@ name = "task-manager"
 version = "0.1.0"
 edition = "2021"
 
+
+[lib]
+name = "task_manager"
+path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-http = "3.7.0"
 actix-web = "4.6.0"
 anyhow = "1.0.86"
 chrono = { version = "0.4.38", features = ["serde"] }

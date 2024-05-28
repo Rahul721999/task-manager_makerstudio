@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaskList {
-    tasks: Vec<Task>,
+    pub tasks: Vec<Task>,
 }
 
 /// API endpoint to create new task

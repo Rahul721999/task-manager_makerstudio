@@ -1,12 +1,12 @@
 use crate::{schema::save_data, AppState};
 use actix_web::{web, HttpResponse, Responder};
-use log::{info, error};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct DeleteUser {
-    id: Uuid,
+    pub id: Uuid,
 }
 
 /// API endpoint to delete a user
@@ -41,10 +41,10 @@ mod test {
 
     use super::*;
     use crate::schema::load_data;
+    use crate::schema::User;
     use actix_web::http::StatusCode;
     use actix_web::{test, App};
     use std::sync::Mutex;
-    use crate::schema::User;
 
     #[actix_web::test]
     async fn test_delete_user() {

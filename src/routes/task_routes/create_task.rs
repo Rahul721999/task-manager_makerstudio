@@ -10,10 +10,10 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewTask {
-    title: String,
-    description: String,
-    due_date: NaiveDate,
-    status: Status,
+    pub title: String,
+    pub description: String,
+    pub due_date: NaiveDate,
+    pub status: Status,
 }
 
 /// API endpoint to create new task
@@ -52,7 +52,7 @@ pub async fn create_task(
 
 #[cfg(test)]
 mod test {
-    use crate::utility::test_utils::{create_test_user_and_task, init_app_state};
+    use crate::test_utils::{create_test_user_and_task, init_app_state};
     use actix_web::http::StatusCode;
     use uuid::Uuid;
 
